@@ -30,7 +30,7 @@ class ConsoleReaderTest {
 
     @Test
     void shouldReadLine() {
-        ConsoleReader reader = createReader("Тестовый ввод\n");
+        ConsoleReader reader = createReader("Тестовый ввод");
         String result = reader.readLine("Текст:");
 
         assertEquals("Тестовый ввод", result);
