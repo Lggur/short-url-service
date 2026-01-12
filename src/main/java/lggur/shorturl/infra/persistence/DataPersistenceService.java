@@ -19,26 +19,34 @@ import java.util.stream.Collectors;
 
 public class DataPersistenceService {
 
-    private static final String DATA_DIR = "data";
-    private static final String LINKS_DIR = "data/links";
+    private static final String DEFAULT_DATA_DIR = "data";
+    private static final String LINKS_SUBDIR = "links";
     private static final String USERS_FILE = "users.json";
     private static final String LINKS_FILE_PREFIX = "links_";
 
+    private final String dataDir;
+    private final String linksDir;
     private final ObjectMapper objectMapper;
 
     public DataPersistenceService() {
+        this(DEFAULT_DATA_DIR);
+    }
+
+    public DataPersistenceService(String baseDataDir) {
+        this.dataDir = baseDataDir;
+        this.linksDir = baseDataDir + File.separator + LINKS_SUBDIR;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     private void ensureDataDirectoryExists() throws IOException {
-        Path dataPath = Paths.get(DATA_DIR);
+        Path dataPath = Paths.get(dataDir);
         if (!Files.exists(dataPath)) {
             Files.createDirectory(dataPath);
         }
 
-        Path linksPath = Paths.get(LINKS_DIR);
+        Path linksPath = Paths.get(linksDir);
         if (!Files.exists(linksPath)) {
             Files.createDirectory(linksPath);
         }
@@ -51,7 +59,7 @@ public class DataPersistenceService {
                 .map(UserData::fromUser)
                 .collect(Collectors.toList());
 
-        File usersFile = new File(DATA_DIR, USERS_FILE);
+        File usersFile = new File(dataDir, USERS_FILE);
         objectMapper.writeValue(usersFile, userData);
 
         Map<UUID, List<ShortLink>> linksByOwner = links.stream()
@@ -66,13 +74,13 @@ public class DataPersistenceService {
                     .collect(Collectors.toList());
 
             String filename = LINKS_FILE_PREFIX + ownerId + ".json";
-            File linksFile = new File(LINKS_DIR, filename);
+            File linksFile = new File(linksDir, filename);
             objectMapper.writeValue(linksFile, linkData);
         }
     }
 
     public List<User> loadUsers() throws IOException {
-        File usersFile = new File(DATA_DIR, USERS_FILE);
+        File usersFile = new File(dataDir, USERS_FILE);
         if (!usersFile.exists()) {
             return new ArrayList<>();
         }
@@ -86,14 +94,14 @@ public class DataPersistenceService {
     }
 
     public List<ShortLink> loadLinks() throws IOException {
-        File linksDir = new File(LINKS_DIR);
-        if (!linksDir.exists()) {
+        File linksDirFile = new File(linksDir);
+        if (!linksDirFile.exists()) {
             return new ArrayList<>();
         }
 
         List<ShortLink> allLinks = new ArrayList<>();
 
-        File[] linkFiles = linksDir
+        File[] linkFiles = linksDirFile
                 .listFiles((dir, name) -> name.startsWith(LINKS_FILE_PREFIX) && name.endsWith(".json"));
 
         if (linkFiles != null) {
