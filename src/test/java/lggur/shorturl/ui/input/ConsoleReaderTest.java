@@ -24,13 +24,13 @@ class ConsoleReaderTest {
 
     private ConsoleReader createReader(String input) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8));
-        Scanner scanner = new Scanner(inputStream);
+        Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8);
         return new ConsoleReader(scanner, printer);
     }
 
     @Test
     void shouldReadLine() {
-        ConsoleReader reader = createReader("Тестовый ввод");
+        ConsoleReader reader = createReader("Тестовый ввод\n");
         String result = reader.readLine("Текст:");
 
         assertEquals("Тестовый ввод", result);
@@ -39,18 +39,18 @@ class ConsoleReaderTest {
 
     @Test
     void shouldReadPositiveInt() {
-        
+
         ConsoleReader reader = createReader("abc\n0\n10\n");
 
         int result = reader.readPositiveInt("Введите число:");
 
         assertEquals(10, result);
-        verify(printer, times(2)).error(anyString()); 
+        verify(printer, times(2)).error(anyString());
     }
 
     @Test
     void shouldReadMenuChoice() {
-        
+
         ConsoleReader reader = createReader("5\n2\n");
 
         int result = reader.readMenuChoice("Выберите вариант:", 3);
@@ -61,7 +61,7 @@ class ConsoleReaderTest {
 
     @Test
     void shouldReadURL() {
-        
+
         ConsoleReader reader = createReader("not-a-url\nhttps://example.com\n");
 
         URL result = reader.readURL("Введите URL:");
@@ -73,7 +73,7 @@ class ConsoleReaderTest {
     @Test
     void shouldReadUUID() {
         UUID uuid = UUID.randomUUID();
-        
+
         ConsoleReader reader = createReader("bad-uuid\n" + uuid + "\n");
 
         UUID result = reader.readUUID("Введите UUID:");
